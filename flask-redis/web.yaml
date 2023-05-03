@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app-deployment
+  labels:
+    app: web-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web-app
+  template:
+    metadata:
+      labels:
+        app: web-app
+    spec:
+      containers:
+      - name: web-app
+        image: nishalprithvi/flask-redis-app-web:firsttry
+        ports:
+        - containerPort: 5000
+        env:
+        - name: REDIS_HOST
+          value: redis-service
+        - name: REDIS_PORT
+          value: "6379"
+        - name: FLASK_APP
+          value: app.py #  the FLASK_APP environment variable is set to app.py, which indicates to Flask that this is the main application file. This allows Flask to locate and run the application when the container is started. 
+        - name: FLASK_ENV
+          value: production
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-app-service
+spec:
+  type: NodePort  # defualt is ClusterIP for internal service here usig NodePort we have established external service for public access
+  selector:
+    app.kubernetes.io/name: web-app
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
+      nodePort: 30100
+
